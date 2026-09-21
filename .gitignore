@@ -1,0 +1,50 @@
+# macOS and editors
+.DS_Store
+**/.DS_Store
+.idea/
+.vscode/
+
+# Python runtime
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+.smart-env/
+
+# Personal Obsidian state and installed plugin bundles
+.obsidian/
+
+# Private vault content
+raw/
+知识簇/
+_graphify/
+处理清单.md
+
+# Generated and operator-local state
+_logs/
+exports/
+
+# Local plans, tools, and machine-specific launchers
+plans/
+tools/
+scripts/codex-gpt54.sh
+
+# Archives and media
+*.tar
+*.tar.gz
+*.zip
+*.mp3
+*.m4a
+*.wav
+*.mp4
+*.mov
+*.m4v
+*.mkv
+*.webm

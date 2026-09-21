@@ -1,0 +1,10 @@
+[project]
+name = "obsidian-graphify"
+version = "0.1.0"
+description = "A traceable Raw-to-Source-to-Claim-to-Wiki workflow for Obsidian and Codex"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[tool.setuptools]
+py-modules = []
