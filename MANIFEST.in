@@ -1,0 +1,5 @@
+recursive-include vault-template *
+recursive-include schema *.md
+recursive-include templates *.md
+recursive-include .codex/skills *.md
+include vault-template/.gitignore

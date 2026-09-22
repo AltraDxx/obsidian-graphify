@@ -231,14 +231,16 @@ class GraphifySyncPlanTest(unittest.TestCase):
             graphify.Edge("知识簇/AI/_索引.md", "知识簇/AI/wiki.md", "wikilink"),
         ]
 
-        original_build_edges = graphify.build_edges
-        graphify.build_edges = lambda _data: edges
+        from obsidian_graphify.commands import maintenance
+
+        original_build_edges = maintenance.build_edges
+        maintenance.build_edges = lambda _data: edges
         stdout = io.StringIO()
         try:
             with contextlib.redirect_stdout(stdout):
                 exit_code = graphify.command_impact(data, "_graphify/sources/source.md")
         finally:
-            graphify.build_edges = original_build_edges
+            maintenance.build_edges = original_build_edges
 
         self.assertEqual(exit_code, 0)
         output = stdout.getvalue()

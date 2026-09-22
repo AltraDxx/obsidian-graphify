@@ -1,31 +1,22 @@
-# Graphify Core
+---
+name: graphify-core
+description: Graphify Vault 通用维护规则；处理知识笔记前使用，不用于修改引擎源码。
+---
 
-Use this skill for every Graphify task in this vault.
+# graphify-core
 
-## Responsibilities
-- Treat `raw/inbox/*` as unclassified source material and `知识簇/`, `_graphify/sources/`, and `_graphify/indexes/` as the canonical explicit graph.
-- Follow the active compilation chain: `Raw -> Source -> Claim -> Wiki -> Index`.
-- Respect the directory contract in `raw/inbox/`, `知识簇/<知识簇>/`, `知识簇/<知识簇>/命题/`, `_graphify/sources/`, `_graphify/indexes/`, `schema/`, `templates/`, `_graphify/dashboards/`, `_logs/`, and `exports/`.
-- Follow [schema/note-spec.md](../../../schema/note-spec.md) for frontmatter and write-back rules.
-- Preserve all manual `[[wikilink]]` edges, relationship arrays, `claim_refs`, `summary_claim_refs`, and `conflict_refs`.
+- **Use when:** 维护 Vault 内容或执行知识工作流。
+- **Do not use when:** 开发引擎代码，或处理与知识库无关的文件。
+- **Inputs:** Vault 路径、用户任务与可选处理清单。
+- **Outputs:** 确定范围、选择工作流并验证结果。
+- **Required validation:** 改动后 graphify lint；结构变化后 graphify export。
 
-## Required Behaviors
-- Update `source_refs`, `confidence`, `updated_at`, and `review_after` on any changed knowledge note.
-- Keep Source notes evidence-focused, Claim notes atomic, Wiki notes synthesized around free-text `core_focus`, and Index notes focused on browsing structure.
-- Use Chinese-first filenames and headings in `知识簇/*`; preserve standard English terms such as `RAG`, `Agent`, `Workflow`, `Latency`, `Streaming`, `Guardrails`, `RAGAS`, and `KV Cache`.
-- When a structural change lands, run `python3 scripts/graphify.py lint` and usually `python3 scripts/graphify.py export`.
-- Append a concise operator note to `_logs/log.md`.
-- Keep note bodies connected and non-redundant, but do not leave important Wiki notes shallow.
-- Preserve formulas, quantitative rules, and mechanism details when they help explain the synthesis.
-- Treat `_graphify/indexes/Graphify知识库索引.md` as a standalone operator index, not as part of a knowledge cluster.
-- Keep inactive Claims out of current Wiki正文; if a Claim is `outdated` or `disputed`, remove or rewrite the supported Wiki explanation and preserve history in Claim `## 复盘记录`.
-- Treat Smart Connections as a semantic discovery aid only.
+## 执行
 
-## Do Not
-- Do not create new active entity, concept, or synthesis buckets.
-- Do not create separate question notes by default.
-- Do not treat a question alone as a Source; create Source only for supplied evidence, cases, observations, corrections, or complete conversations intentionally preserved as material.
-- Do not force Wiki notes into fixed template sections; templates are reference checklists.
-- Do not delete explicit user links, relation arrays, or claim refs without an explicit request.
-- Do not treat Smart Connections suggestions as canonical unless they are reflected in explicit files and links.
-- Do not create ad hoc frontmatter fields when an existing field fits.
+1. 阅读 [笔记规范](../../../schema/note-spec.md) 与 [工作流规范](../../../schema/workflows.md)，按任务选择 ingest、query、curation 或 Sync User Edits。
+2. 从指定材料或当前 Wiki 开始，使用 `graphify lookup`、`changes`、`scope`、`impact` 缩小上下文。
+3. 按 note-spec 的 Common Knowledge Contract 保护显式链接，按 Query And Update Rules 决定是否写回。
+4. 规范中的 Source/Claim/Wiki/Index 各节决定修改落点；不另造类型或字段。中文优先命名，模板仅为脚手架。
+5. 已接受批次写入 `_logs/log.md`，验证后报告实际修改与未解决问题。
+
+命令在 Vault 根目录运行；从其他目录运行时显式使用 `graphify --vault <路径>`。
