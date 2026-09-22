@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import hashlib
+
 from collections import defaultdict
 from pathlib import Path
 from typing import Any
@@ -10,7 +12,7 @@ from obsidian_graphify.refs import candidate_keys
 from obsidian_graphify.utils import as_string, listify, to_float
 
 
-def load_vault() -> dict[str, Any]:
+def load_vault(*, hash_content: bool = False) -> dict[str, Any]:
     raw_items = collect_raw_items()
     wiki_notes = collect_knowledge_notes()
     all_notes = {note.rel_path: note for note in wiki_notes}
@@ -24,7 +26,7 @@ def load_vault() -> dict[str, Any]:
         "node_specs": all_nodes,
         "alias_map": alias_map,
         "processed_raw_refs": processed_raw_refs,
-        "file_snapshot": build_file_snapshot(raw_items, wiki_notes),
+        "file_snapshot": build_file_snapshot(raw_items, wiki_notes, hash_content=hash_content),
     }
 
 
@@ -198,7 +200,9 @@ def collect_processed_raw_refs(wiki_notes: list[Note]) -> set[str]:
     return refs
 
 
-def build_file_snapshot(raw_items: list[RawItem], wiki_notes: list[Note]) -> dict[str, dict[str, Any]]:
+def build_file_snapshot(
+    raw_items: list[RawItem], wiki_notes: list[Note], *, hash_content: bool = False
+) -> dict[str, dict[str, Any]]:
     snapshot: dict[str, dict[str, Any]] = {}
     tracked_paths = [item.path for item in raw_items] + [note.path for note in wiki_notes]
     for path in tracked_paths:
@@ -208,4 +212,7 @@ def build_file_snapshot(raw_items: list[RawItem], wiki_notes: list[Note]) -> dic
             "mtime_ns": stat.st_mtime_ns,
             "size": stat.st_size,
         }
+        if hash_content:
+            with path.open("rb") as stream:
+                snapshot[rel_path]["sha256"] = hashlib.file_digest(stream, "sha256").hexdigest()
     return snapshot

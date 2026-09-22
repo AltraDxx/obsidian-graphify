@@ -2,6 +2,11 @@
 
 采用 Keep a Changelog 分类与 SemVer。
 
+## [Unreleased]
+
+### Fixed
+- changes 使用 SHA-256 识别同大小且时间戳未变的内容修改，并忽略仅时间戳变化；旧快照保持兼容，保存后自动升级。
+
 ## [0.2.0] - 2026-09-22
 
 ### Added

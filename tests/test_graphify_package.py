@@ -121,6 +121,42 @@ class PackageTests(unittest.TestCase):
         self.cli("--vault", str(self.vault), "changes", "--save")
         self.assertIn("No tracked", self.cli("--vault", str(self.vault), "changes"))
 
+    def test_ordinary_load_does_not_hash_media(self):
+        with use_vault(VaultContext(self.vault)), patch(
+            "obsidian_graphify.vault.hashlib.file_digest", side_effect=AssertionError("unexpected hash")
+        ):
+            load_vault()
+
+    def test_hash_changes_detect_same_size_edit_with_preserved_timestamp(self):
+        self.cli("--vault", str(self.vault), "changes", "--save")
+        path = self.vault / "raw/inbox/虚构温室实验.md"
+        stat = path.stat()
+        content = path.read_bytes()
+        replacement = content.replace("甲组".encode(), "丙组".encode())
+        self.assertEqual(len(content), len(replacement))
+        path.write_bytes(replacement)
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns))
+        self.assertIn("modified: 1", self.cli("--vault", str(self.vault), "changes"))
+
+    def test_hash_changes_ignore_timestamp_only_edits(self):
+        self.cli("--vault", str(self.vault), "changes", "--save")
+        path = self.vault / "raw/inbox/虚构温室实验.md"
+        stat = path.stat()
+        os.utime(path, ns=(stat.st_atime_ns, stat.st_mtime_ns + 10_000_000_000))
+        self.assertIn("No tracked", self.cli("--vault", str(self.vault), "changes"))
+
+    def test_legacy_snapshot_remains_readable_and_upgrades_on_save(self):
+        self.cli("--vault", str(self.vault), "changes", "--save")
+        state_path = self.vault / "_logs/vault-state.json"
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        for metadata in state["files"].values():
+            metadata.pop("sha256")
+        state_path.write_text(json.dumps(state), encoding="utf-8")
+        self.assertIn("No tracked", self.cli("--vault", str(self.vault), "changes"))
+        self.cli("--vault", str(self.vault), "changes", "--save")
+        state = json.loads(state_path.read_text(encoding="utf-8"))
+        self.assertTrue(all(len(meta["sha256"]) == 64 for meta in state["files"].values()))
+
     def test_reference_alias_heading_and_ambiguity(self):
         with use_vault(VaultContext(self.vault)):
             data = load_vault()

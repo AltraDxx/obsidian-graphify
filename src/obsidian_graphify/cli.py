@@ -61,7 +61,7 @@ def dispatch(args: argparse.Namespace) -> int:
     if args.command == "compile-media":
         from obsidian_graphify.media.transfer_platform import command_compile_media
         return command_compile_media(target_path=args.path, force=args.force)
-    data = load_vault()
+    data = load_vault(hash_content=args.command in {"changes", "export"})
     if args.command == "scan":
         return command_scan(data, scope_path=args.scope)
     if args.command == "changes":

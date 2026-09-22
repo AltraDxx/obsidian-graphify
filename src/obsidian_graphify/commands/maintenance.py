@@ -71,8 +71,12 @@ def command_changes(data: dict[str, Any], save_baseline: bool = False) -> int:
         for path, meta in current_snapshot.items()
         if path in previous_snapshot
         and (
-            meta.get("mtime_ns") != previous_snapshot[path].get("mtime_ns")
-            or meta.get("size") != previous_snapshot[path].get("size")
+            meta.get("sha256") != previous_snapshot[path]["sha256"]
+            if previous_snapshot[path].get("sha256")
+            else (
+                meta.get("mtime_ns") != previous_snapshot[path].get("mtime_ns")
+                or meta.get("size") != previous_snapshot[path].get("size")
+            )
         )
     )
 
