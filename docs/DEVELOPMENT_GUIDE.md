@@ -69,6 +69,7 @@ schema 或 Vault 资源改动必须重新构建和验证 wheel，editable 成功
 ## Git、网络与交付
 
 长期分支仅保留 main/develop。从 develop 建短期 topic 分支，PR 经最新提交 CI 通过后合入 develop，再通过发布 PR 合入 main。发布 PR 使用保留祖先关系的合并方式，之后可将 develop 快进到 main，避免长期分叉。
+本仓库合并 PR 后可能自动删除源分支，包括发布 PR 的 develop。发布后必须核对：若 develop 已被自动删除，从已验证的 main 提交重新创建 develop；若仍存在则只允许快进同步。不要修改保护规则或强推来完成对齐。
 
 用户要求清理交付时，确认无待处理 PR、临时分支代码已合并且已备份，再删除临时远端/本地分支。不要只关闭未合并 PR 来凑零，也不丢弃他人的未交付工作。不强推 main/develop。
 
