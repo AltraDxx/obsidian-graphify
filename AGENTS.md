@@ -12,6 +12,7 @@
 - README 负责上手，docs 负责操作说明，AGENTS/skills 引用 schema，不复制完整规范。
 - init 默认保留用户文件；发行包必须携带可用的 Vault 规则、模板和 skills。
 - 不自动删除 develop，不强推或重写已发布历史。分支与贡献流程见 CONTRIBUTING.md。
+- 长期分支仅保留 main/develop；临时分支通过 PR 交付，用户要求收尾时核实已合并并备份后清理，不丢弃未合并工作。
 
 ## 验证门槛
 
@@ -20,4 +21,4 @@
 
 ## 接手入口
 
-架构与调试入口见 [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md)。未完成任务的状态见根目录 CONTEXT.md。
+架构、调试、验证、交付与后续迁移入口见 [docs/DEVELOPMENT_GUIDE.md](docs/DEVELOPMENT_GUIDE.md)。优化验收见 [docs/OPTIMIZATION_SUMMARY.md](docs/OPTIMIZATION_SUMMARY.md)。未完成任务的状态见根目录 CONTEXT.md（如存在，先核对相关性）。

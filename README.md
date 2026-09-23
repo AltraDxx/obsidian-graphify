@@ -161,6 +161,7 @@ graphify --vault ../MyGraphifyVault lint
 - [Obsidian 配置](schema/obsidian-setup.md)：图谱与可选 Smart Connections
 - [媒体编译](docs/media.md)：实验性 `compile-media`，需独立 provider
 - [贡献指南](CONTRIBUTING.md) / [开发入口](docs/DEVELOPMENT_GUIDE.md)
+- [本次优化说明与验收](docs/OPTIMIZATION_SUMMARY.md)
 - [变更记录](CHANGELOG.md) / [第二阶段](docs/phase-2.md)
 
 当前为 0.x 版本；升级前检查变更记录，特别注意 Vault 定位与规则副本的兼容说明。

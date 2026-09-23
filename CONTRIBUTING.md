@@ -32,6 +32,7 @@ CI 覆盖 Python 3.11 与 3.13，并验证发行包包含 Vault 资源。
 
 目前保留 `main`（稳定）与 `develop`（集成）；默认非琐碎开发从 develop 建短期分支，使用 PR，经测试后 squash merge，再通过 PR 发布至 main。
 本次重构开始时两者指向同一快照，未删除或改写 develop。
+长期分支仅保留 main/develop，临时分支合并后清理。发布 develop 到 main 时保留祖先关系，随后可快进 develop 与 main 对齐，不强推同步。
 少量维护者后续可采用 trunk-based：受保护 main + 短期 topic branch + PR + squash + release tag；仓库维护者确认后再切换，不能仅靠改文档声称已配置保护规则。
 
 提交应聚焦，按需使用 `feat:`、`fix:`、`refactor:`、`docs:`、`test:`。不强推已发布历史。
