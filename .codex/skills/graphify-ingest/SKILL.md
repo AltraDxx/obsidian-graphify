@@ -1,29 +1,22 @@
-# Graphify Ingest
+---
+name: graphify-ingest
+description: 将用户要求入库的 raw 材料整理为可追溯 Graphify 知识；普通提问不触发。
+---
 
-Use this skill when converting `raw/inbox/*` material into the curated graph.
+# graphify-ingest
 
-## Workflow
-1. If the user mentions recent additions, run `python3 scripts/graphify.py changes` first.
-2. If the user provides a scoped batch, read `处理清单.md` or run `python3 scripts/graphify.py scope 处理清单.md`.
-3. Read the raw item and nearby Source, Claim, Wiki, and Index notes.
-4. Create or update a `_graphify/sources/*` evidence page with anchors and traceability notes when durable evidence exists.
-5. Extract or update atomic `知识簇/<知识簇>/命题/*` notes from the evidence.
-6. Promote only cohesive claim sets into `知识簇/<知识簇>/*` Wiki notes.
-7. Update the cluster `_索引.md` or `_graphify/indexes/*` when a cluster, core Wiki, or cross-cluster relation changed.
-8. Ensure `source_refs` on affected notes point back to their direct support.
-9. Mark raw Markdown items as `processed` when Source and Claim extraction is complete.
-10. Record the batch in `_logs/log.md`.
+- **Use when:** raw/inbox 新增材料且用户要求处理，或用户明确要求材料入库。
+- **Do not use when:** 用户只问已有知识，未要求入库。
+- **Inputs:** raw 路径、Vault、可选处理清单。
+- **Outputs:** 零到多个 Source、Claim、Wiki 与必要 Index 更新。
+- **Required validation:** graphify lint；结构变化后 graphify export。
 
-## Quality Bar
-- Source notes preserve evidence; they are not the final explanation surface.
-- Raw material does not need `source_type`; classify it during ingest.
-- A question alone is not a Source. Create or update Source only for user-supplied evidence, cases, observations, corrections, complete conversations preserved as material, or imported raw items.
-- Claims must be short, traceable, updateable, and explicit about support state and scope.
-- Wiki notes synthesize around `core_focus`; it is free text and does not have to be a question.
-- Templates are reference checklists. Do not force fixed sections when another structure explains the knowledge better.
-- Prefer updating an existing Claim or Wiki note over creating a duplicate.
-- Add explicit links where the evidence materially supports a Claim or Wiki note.
-- Keep confidence conservative until multiple sources converge.
-- Use Chinese-first filenames, titles, and section headings for new `知识簇/*` notes while preserving standard English terms.
-- Preserve formulas, mechanisms, trade-offs, boundaries, and failure modes when they help make the Wiki synthesis understandable.
-- `快速把握` is recommended for Wiki routing; `## 摘要` is not required.
+## 执行
+
+1. 阅读 [workflows 的 Ingest](../../../schema/workflows.md#ingest)，遵循 [note-spec](../../../schema/note-spec.md) 各类型规范。
+2. 用户提到最近新增时先 `graphify changes`；指定清单则 `graphify scope 处理清单.md`。读取 raw 和最小相关知识链。
+3. 执行 Ingest 顺序，优先更新已有笔记。证据不足时保留不确定性，不为凑齐目录强行生成 Wiki。
+4. 保留有用的公式、机制、边界和失败条件，避免仅复制标题或模板。raw 处理状态、日志和索引更新遵循规范。
+5. 运行验证，报告材料去向和文件变更。
+
+命令在 Vault 根目录运行；从其他目录运行时显式使用 `graphify --vault <路径>`。

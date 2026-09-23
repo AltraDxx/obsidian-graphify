@@ -1,27 +1,22 @@
-# Graphify Query
+---
+name: graphify-query
+description: 依据 Graphify Vault 回答知识问题；默认只读，需同步时转入规范的同步流程。
+---
 
-Use this skill when answering questions from the vault and feeding the result back into the graph.
+# graphify-query
 
-## Workflow
-1. Use `python3 scripts/graphify.py lookup "<term>"` first when the user asks about a topic, product, framework, person, or knowledge question.
-2. Treat `lookup` as a two-layer router: first cluster Index/Wiki title, aliases, tags, frontmatter, `快速把握`, and body preview; then Wiki/Claim notes inside the candidate cluster.
-3. Do not read raw or Source正文 unless evidence verification is needed.
-4. If the user is clearly asking about the note they are currently reading, start from that note and expand to its Claim / Source chain.
-5. Answer with note-level citations.
-6. Do not write back after every answer by default. If the user confirms sync or the conversation creates durable knowledge, choose the smallest durable write-back:
-   - durable page-local review value: update the relevant Wiki page's `## 用户提问与复盘`
-   - new proposition supported by current evidence: update or create a `知识簇/<知识簇>/命题/*` note
-   - several claims form reusable synthesis: update or create a `知识簇/<知识簇>/*` Wiki note
-   - user supplied a new example/correction: place it in `raw/inbox/`, then create or update a Source and extract Claims
-   - browsing structure changed: update cluster `_索引.md` or `_graphify/indexes/*`
-7. Update `confidence`, `updated_at`, and `review_after` on every changed answer note.
-8. Log the work in `_logs/log.md`.
+- **Use when:** 用户询问 Vault 中的知识，或围绕当前 Wiki 提问。
+- **Do not use when:** 用户主要要求新材料入库或全库整理。
+- **Inputs:** 问题、可选当前 Wiki 与 Vault 路径。
+- **Outputs:** 带笔记引用的回答和证据不足说明；获准同步时才有文件变更。
+- **Required validation:** 只读查询检查引用可解析；写回后 graphify lint，结构变化后 export。
 
-## Closed-Loop Requirement
-- A useful question can improve the graph, but only sync after user confirmation or a meaningful batch.
-- Favor updating canonical Claims and Wiki notes instead of creating standalone question notes.
-- Questions themselves are not Sources. Keep ordinary questions out of Claim; only preserve a Source when the user supplied evidence, a case, an observation, a correction, or asked to retain the full conversation as material.
-- If the best answer is incomplete, preserve uncertainty explicitly in Claim support state or the Wiki review section.
-- If a question challenges a Claim, record a short maintenance note in the Claim only when it affects `statement`, `scope`, `boundary_note`, `support_state`, or conflict state.
-- When refining a page, synthesize around `core_focus`; do not recreate old concept/synthesis buckets or force template sections.
-- If a user review changes a note, record the concrete knowledge delta in the note body.
+## 执行
+
+1. 遵循 [workflows 的 Query](../../../schema/workflows.md#query) 和 [note-spec 的 Query And Update Rules](../../../schema/note-spec.md#query-and-update-rules)。
+2. 对宽泛问题先 `graphify lookup "主题"`；明确当前 Wiki 时从该页开始。按需要展开 Claim 与 Source，不默认扫描全部证据。
+3. 给出笔记级引用，区分已有结论、冲突和证据不足。
+4. 默认不写回。用户要求同步或出现规范允许的持久材料时，按最小写回落点处理；用户明确说不写回时保持只读。
+5. 同步用户编辑按 [Sync User Edits](../../../schema/workflows.md#sync-user-edits) 先 changes、必要时 impact，再依次更新下游与日志。
+
+命令在 Vault 根目录运行；从其他目录运行时显式使用 `graphify --vault <路径>`。

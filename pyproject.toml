@@ -1,10 +1,21 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "obsidian-graphify"
-version = "0.1.0"
+version = "0.2.0"
 description = "A traceable Raw-to-Source-to-Claim-to-Wiki workflow for Obsidian and Codex"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = []
 
-[tool.setuptools]
-py-modules = []
+[project.scripts]
+graphify = "obsidian_graphify.cli:main"
+
+[project.optional-dependencies]
+dev = ["build>=1", "setuptools>=68", "wheel", "PyYAML>=6"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["obsidian_graphify*"]

@@ -1,0 +1,16 @@
+# 可重建数据与个人应用状态
+_logs/
+exports/
+.graphify/cache/
+.graphify/generated/
+.obsidian/workspace*.json
+.obsidian/cache/
+.smart-env/
+.DS_Store
+.venv/
+__pycache__/
+.env
+.env.*
+!.env.example
+
+# 核心知识和原材料默认可跟踪；大附件请按 docs/vault-git-strategy.md 选择存储方式。

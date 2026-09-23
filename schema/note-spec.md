@@ -1,5 +1,7 @@
 # Graphify Note Spec
 
+本文件为数据规范。MUST/必须表示必需，MUST NOT/不得表示禁止，SHOULD/应表示默认建议，MAY/可以表示可选。Agent 指南与模板引用本规范，不另行定义规则。
+
 ## Directory Roles
 - `raw/inbox/`: user-created or imported material waiting to be classified, compiled, or referenced.
 - `知识簇/<知识簇>/*.md`: readable Wiki notes; the knowledge cluster is the user-facing browsing unit.
@@ -51,7 +53,7 @@ traceability_level: raw | anchor | span
 ```
 
 Source sync decision rules:
-- 如果用户直接编辑了 Source 并要求同步，先跑 `changes` 定位被改的 Source，再用 `graphify.py impact <source>` 缩小到受影响的 Claim、Wiki 和 Index。
+- 如果用户直接编辑了 Source 并要求同步，先跑 `changes` 定位被改的 Source，再用 `graphify impact <source>` 缩小到受影响的 Claim、Wiki 和 Index。
 - 如果 Source 只是改格式或错字，不改下游 Claim/Wiki。
 - 如果 Source 新增证据，更新 Source 摘要与锚点；必要时新增 Claim，再更新引用它的 Wiki。
 - 如果 Source 改变原有证据，更新相关 Claim 的 `statement`、`scope`、`boundary_note`、`support_state` 和 `confidence`，再同步到 Wiki。

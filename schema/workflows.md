@@ -1,5 +1,7 @@
 # Graphify Workflows
 
+本文件为工作流规范。MUST/必须表示必需，MUST NOT/不得表示禁止，SHOULD/应表示默认建议，MAY/可以表示可选。Agent 指南与模板引用本规范，不另行定义规则。
+
 Graphify's active compilation chain is:
 
 `Raw -> Source -> Claim -> Wiki -> Index / Search / Ask`
@@ -21,10 +23,10 @@ Graphify's active compilation chain is:
 7. Update the relevant cluster `_索引.md` or `_graphify/indexes/*` if browsing structure changed.
 8. Mark Markdown raw items as `processed` after Source and Claim extraction is complete.
 9. Append a short note to `_logs/log.md`.
-10. Run `.venv/bin/python scripts/graphify.py lint`.
+10. Run `graphify lint`.
 
 ## Query
-1. Use `.venv/bin/python scripts/graphify.py lookup "<term>"` to route the question to a cluster or candidate Wiki note.
+1. Use `graphify lookup "<term>"` to route the question to a cluster or candidate Wiki note.
 2. `lookup` first checks Index/Wiki titles, aliases, tags, frontmatter, `快速把握`, and body preview; then it searches Wiki/Claim notes inside the candidate cluster.
 3. Wiki 检索按 section 进行：优先 `快速把握` 和各个 `##` 小节命中，并在结果里返回最佳 `section`；Claim 保持原子命题，不切成更小片段。
 4. 如果路由层没有命中，`lookup` 会回退到全量 Wiki/Claim 检索；Source 仍默认不进入主检索。
@@ -50,8 +52,8 @@ Question recording rules:
 - 如果用户直接新建文件记录问题或材料，先放入 `raw/inbox/`；同步时再判断它是 Wiki 复盘、Source，还是 Claim 更新触发器。
 
 ## Sync User Edits
-1. Run `.venv/bin/python scripts/graphify.py changes` to detect changed tracked files.
-2. For a changed Source, run `.venv/bin/python scripts/graphify.py impact "<source>"`.
+1. Run `graphify changes` to detect changed tracked files.
+2. For a changed Source, run `graphify impact "<source>"`.
 3. Update downstream Claims first, then Wiki notes, then Indexes.
 4. For a changed Wiki note, compare edited main/review content against existing Claims and Sources before rewriting Claims.
 5. Append `_logs/log.md` with the actual knowledge delta.
@@ -79,9 +81,9 @@ Claim conflict rules:
 6. Append a short note to `_logs/log.md`.
 
 ## Lint And Export
-Run `.venv/bin/python scripts/graphify.py lint` to check frontmatter, broken links, relation targets, claim refs, stale notes, orphans, and protected links.
+Run `graphify lint` to check frontmatter, broken links, relation targets, claim refs, stale notes, orphans, and protected links.
 
-Run `.venv/bin/python scripts/graphify.py export` to regenerate:
+Run `graphify export` to regenerate:
 - `exports/graph.json`
 - `exports/graph.graphml`
 - `exports/graph-summary.md`
