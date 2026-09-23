@@ -20,9 +20,17 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Run unit tests
+      - name: Install development tools
+        run: python -m pip install -e ".[dev]"
+      - name: Run unit and integration tests
         run: python -m unittest discover -s tests -v
-      - name: Validate an empty public vault
+      - name: Build and validate isolated wheel install
         run: |
-          python scripts/graphify.py lint
-          python scripts/graphify.py status
+          python -m build
+          python scripts/check_wheel.py
+      - name: Validate synthetic vault
+        run: |
+          graphify --vault tests/fixtures/sample-vault lint
+          graphify --vault tests/fixtures/sample-vault status
+          graphify --vault tests/fixtures/sample-vault export
+          git diff --check

@@ -1,130 +1,167 @@
-# Obsidian Graphify 使用说明
+# Obsidian Graphify
 
-Graphify 的目标不是只存笔记，而是把原材料持续编译成可以查询、关联、维护和导出的知识图谱。
+把原材料整理成可查询、可维护、能追溯证据的知识：
 
-## 公开仓库边界
+`Raw -> Source -> Claim -> Wiki -> Index`
 
-这个仓库只发布可复用的 Graphify 工作流：规则、模板、Codex skills、维护脚本和测试。实际知识库内容、Source 证据、原始材料、日志、导出、Obsidian 个人状态、Smart Connections 索引和媒体不进入公开 Git 历史。
+Graphify 是一套**文件规范 + Agent 工作流 + 确定性维护 CLI**。它不是 Obsidian 插件、向量数据库、自动 RAG 服务或每轮聊天自动入库的记忆系统；不安装 Smart Connections 也能使用。
 
-`compile-media` 是现有的实验性接口；公开仓库不包含媒体素材、本机 OCR 模型或生成产物。
+| 角色 | 负责什么 |
+|---|---|
+| Obsidian | 人工阅读、编辑、浏览知识簇与图谱 |
+| Codex | 理解材料，执行 ingest、query、sync、curate，生成和维护知识笔记 |
+| Graphify CLI | 扫描、路由、校验、影响分析、状态检查与图导出 |
 
-## 快速开始
+CLI 不生成语义知识；下文的终端命令与 Codex 对话分别标明。
+
+## 前 10 分钟
+
+### 1. 安装
+
+准备 Python 3.11+、Git、Obsidian 和可访问本地文件的 Codex。
+
+**在终端中：**
 
 ```bash
 git clone https://github.com/AltraDxx/obsidian-graphify.git
 cd obsidian-graphify
-python3 -m venv .venv
-mkdir -p raw/inbox "知识簇" _graphify/sources _graphify/indexes _logs exports
+python -m venv .venv
 ```
 
-然后将这个目录作为 Obsidian vault 打开，参考 `schema/obsidian-setup.md` 配置视图，再使用 `templates/` 创建首批笔记。核心脚本只依赖 Python 3.11 或更高版本的标准库。
+Windows PowerShell 激活：
 
-验证安装：
+```powershell
+.venv\Scripts\Activate.ps1
+```
+
+Linux/macOS 激活：
 
 ```bash
-.venv/bin/python -m unittest discover -s tests -v
-.venv/bin/python scripts/graphify.py lint
-.venv/bin/python scripts/graphify.py status
+source .venv/bin/activate
 ```
 
-核心链路：
-
-```text
-Raw -> Source -> Claim -> Wiki -> Index / Search / Ask
-```
-
-## 目录结构
-- `知识簇/<知识簇>/`：主要阅读区。每个文件夹是一个知识簇，根目录放 Wiki 和 `_索引.md`。
-- `知识簇/<知识簇>/命题/`：该知识簇下的原子命题。
-- `raw/inbox/`：原材料入口。网页、PDF 摘要、项目材料、外部对话、视频链接、问题和临时记录都先进入这里。
-- `_graphify/sources/`：证据页。保留材料原本说了什么、证据锚点在哪里。
-- `_graphify/indexes/`：全库索引和 Graphify 操作索引。
-- `_graphify/dashboards/`：内部诊断视图，不作为日常入口。
-- `处理清单.md`：用户指定本批次要处理的材料、Wiki、Claim 或 Source。
-- `schema/`、`templates/`、`.codex/skills/`：规则、模板和 Codex workflow。
-- `_logs/` 和 `exports/`：机器生成的日志、快照和图谱导出。
-
-## Source、Claim、Wiki、Index
-- Source：证据，回答“材料原本说了什么”。问题本身不是 Source，除非用户明确要把完整对话作为材料保留。
-- Claim：最小可追踪命题，回答“当前证据支持什么判断”，并维护适用范围、边界、冲突和状态。
-- Wiki：综合知识单元，围绕自由文本 `core_focus` 组织多个 Claim，把知识讲透；不强制问题导向、类型枚举或固定段落。
-- Index：浏览结构，回答“这个知识簇或操作入口包含哪些主题，应该从哪里读起”。
-
-Claim 不是 Wiki 的缩略版，Wiki 也不是单条 Claim 的扩写。Claim 负责证据命题化与真实性边界；Wiki 负责命题综合、解释结构、机制、边界、应用和关系。
-未被任何 Wiki 吸收的 Claim 仍然合法存在，继续留在 `知识簇/<知识簇>/命题/`；只有后续形成稳定主题时，才新建 Wiki 用 `claim_refs` 或 `summary_claim_refs` 指回这些 Claim，不复制第二份正文。
-
-## Obsidian 怎么看
-- 左侧文件浏览：主要看 `知识簇/`；Graphify 操作入口从 `_graphify/indexes/Graphify知识库索引.md` 进入。
-- 默认关系图谱：显示 `知识簇/` 下的 Wiki、知识簇 `_索引.md`，以及带 `graph_role: standalone_claim` 的待综合 Claim；不显示 Source 或 Graphify 操作索引。
-- Smart Connections：作为相邻内容召回，优先显示 `type:claim` 和 `type:wiki`，不负责定义知识簇结构。
-- 书签留给用户个人复查、稍后阅读或不确定内容；Graphify 不自动写书签。
-
-补充定义：
-- 待综合 Claim：还没有被任何 Wiki 的 `claim_refs` 或 `summary_claim_refs` 引用的 Claim。
-- orphan：Obsidian 链接意义上的孤立页，即没有 `inlinks`、也没有 `outlinks`。它不等于“待综合 Claim”。
-
-## 提问方式
-普通问题可以直接问：
-
-```text
-query RAG 和微调的边界是什么？
-```
-
-更推荐在看到某个 Wiki 页时直接问：
-
-```text
-围绕 [[RAG、上下文与微调边界]]，我有个问题：……
-```
-
-回答流程：
-1. 先用 `.venv/bin/python scripts/graphify.py lookup "<主题>"` 路由到知识簇索引或 Wiki；它先看标题、aliases、tags、frontmatter、`快速把握` 和正文开头，再在候选簇内查 Wiki/Claim。
-2. 再顺着 Wiki 的 `claim_refs` 读 Claim；只有需要核验证据时才继续读 Source。
-3. 用最小足够的证据链回答。
-4. 默认不每轮自动入库。
-
-## 什么时候入库
-不用每轮对话都判断入库。以下情况才同步：
-- 你明确说“请同步知识库”。
-- 你在 Obsidian 里改了 Source、Claim 或 Wiki，并要求同步。
-- 几轮对话后形成了可复用的新材料或新判断。
-- 新内容改变了知识簇结构，需要更新 Index。
-
-入库顺序：
-1. 用户直接新建的问题或材料先放 `raw/inbox/`。
-2. 新证据、案例、观察或纠错确认后进入 `_graphify/sources/`。
-3. 从 Source 抽取或修正 `知识簇/<知识簇>/命题/`。
-4. 多个稳定 Claim 再综合进 `知识簇/<知识簇>/` 的 Wiki。
-5. 知识簇主题、核心页或跨簇关系变化时更新 `_索引.md` 或 `_graphify/indexes/`。
-
-## 处理清单
-`处理清单.md` 是用户指定处理范围的入口。
-
-- 没有清单或清单为空：Graphify 默认全量处理。
-- 有未完成条目：只处理清单条目及必要上下游。
-- 支持 `[[wikilink]]`、反引号路径和普通路径。
-- 处理完成后勾选条目，并在“处理记录”写简短结果。
-
-常用命令：
+激活后，在同一终端运行：
 
 ```bash
-.venv/bin/python scripts/graphify.py scope
-.venv/bin/python scripts/graphify.py scope 处理清单.md
-.venv/bin/python scripts/graphify.py scan --scope 处理清单.md
-.venv/bin/python scripts/graphify.py lint --scope 处理清单.md
+python -m pip install -e .
+graphify --help
+graphify init ../MyGraphifyVault
+cd ../MyGraphifyVault
 ```
 
-## 模板原则
-模板只是参考检查清单，不是必填结构。Wiki 编译以“把知识讲透”为准，可以按需使用机制、公式、案例、对比、流程、边界、争议或其他更合适的结构。
+`init` 创建目录、配置、AGENTS、schema、模板和 `.codex/skills`；默认保留已有文件。无需安装媒体依赖。
+在 Obsidian 中选择 **Open folder as vault**，打开 `MyGraphifyVault`。日常从 `知识簇/` 阅读。
 
-`快速把握` 推荐保留，用来帮助快速阅读和 lookup 路由；不再强制 `## 摘要`。`用户提问与复盘` 只记录真正影响知识更新的问题、纠错、裁决或复盘。
+### 2. 放入第一份材料
 
-## 常用命令
+在 Vault 中创建 `raw/inbox/rag-notes.md`：
+
+```markdown
+# RAG notes
+
+RAG 在推理阶段检索外部知识，把相关材料加入上下文，通常不修改模型权重。
+检索材料可能过时或不相关，因此回答仍需要核验证据。
+```
+
+### 3. 让 Codex 整理
+
+在 Codex 中将 **MyGraphifyVault 文件夹**作为任务工作目录。下列文字是**在 Codex 对话框输入**的请求：
+
+```text
+请读取 AGENTS.md、schema/note-spec.md、schema/workflows.md，
+以及 .codex/skills/graphify-ingest/SKILL.md，按 ingest workflow 处理：
+raw/inbox/rag-notes.md
+
+创建或更新必要的 Source，提取最小可追踪 Claim。
+只有多个 Claim 足以形成稳定主题时才创建 Wiki，不要为了示例强行生成。
+完成后运行 graphify lint，告诉我创建或修改了哪些文件。
+若当前终端找不到 graphify，请使用引擎项目 .venv 中的可执行文件并指定 --vault。
+```
+
+这些工作流文件已由 init 写入 Vault；若 Codex 没有自动列出 skill，明确读取上述文件即可。CLI 和 Obsidian 不会自行执行 ingest。
+
+成功后可看到类似结构（具体命名、是否生成 Wiki 由材料决定）：
+
+```text
+raw/inbox/rag-notes.md
+    ↓ Codex ingest
+_graphify/sources/rag-notes.md
+    ↓
+知识簇/AI/命题/RAG通常不修改模型权重.md
+知识簇/AI/命题/检索材料需要核验.md
+    ↓ 满足综合条件时
+知识簇/AI/RAG.md
+```
+
+### 4. 检查并提问
+
+**在已激活环境的终端中，位于 Vault 目录：**
+
 ```bash
-.venv/bin/python scripts/graphify.py scan
-.venv/bin/python scripts/graphify.py changes
-.venv/bin/python scripts/graphify.py lookup "rag"
-.venv/bin/python scripts/graphify.py impact "_graphify/sources/xxx.md"
-.venv/bin/python scripts/graphify.py status
-.venv/bin/python scripts/graphify.py lint
-.venv/bin/python scripts/graphify.py export
+graphify status
+graphify lint
+graphify lookup "RAG"
 ```
+
+`status` 显示 Vault 路径与各类笔记数量；`lint` 无结构错误即退出 0。首次提示没有链接快照是正常的，可运行 `graphify export` 建立快照。
+`lookup` 输出 `Route matches`、`Knowledge matches` 等区域，Wiki 命中包含 `section=...`；无相关知识时会报告没有命中，它不会代替 Codex 回答。
+
+**在 Codex 中输入：**
+
+```text
+请按 .codex/skills/graphify-query/SKILL.md，基于当前 Vault 回答：
+RAG 是否会修改模型权重？检索后为什么仍要核验证据？
+先用 lookup 路由，再按需要读取 Wiki、Claim 和 Source，引用笔记。
+证据不足时明确说明。这次不要写回知识库。
+```
+
+需要保存新结论时，再在 Codex 中输入：
+
+```text
+刚才的结论值得保留，请按同步流程更新知识库。
+优先更新已有 Source、Claim、Wiki，避免重复创建，并运行 lint。
+```
+
+## 日常操作
+
+- **新增材料**：放入 `raw/inbox/`，用 `graphify changes` 查看，再让 Codex ingest。
+- **限定批次**：编辑 `处理清单.md`，用 `graphify scope 处理清单.md` 查看；不传清单参数时 CLI 维持全量范围。
+- **只提问**：让 Codex query，默认不写回。
+- **改动 Source 后同步**：运行 `graphify changes` 和 `graphify impact "_graphify/sources/文件.md"`，让 Codex 按 Claim → Wiki → Index 更新。
+- **定期整理**：让 Codex 使用 curation skill 检查冲突、过期知识、重复内容和弱关联。
+
+| 常用终端命令 | 用途 |
+|---|---|
+| `graphify scan` | 重建待处理清单 `_logs/pending.md` |
+| `graphify changes` | 对比上次快照；`--save` 保存新基线 |
+| `graphify scope 处理清单.md` | 展开清单与必要上下游 |
+| `graphify lookup "主题"` | 查找知识入口和相关笔记 |
+| `graphify impact "路径或标题"` | 分析下游影响 |
+| `graphify status` | 查看数量与状态 |
+| `graphify lint` | 校验结构、引用与链接保护 |
+| `graphify export` | 导出 JSON、GraphML、摘要并更新快照 |
+
+## 源码仓库与私有 Vault
+
+本公开仓库只维护代码、规范、模板、skills 和合成测试材料。真实知识建议保存在**独立私有 Git 仓库**。
+引擎安装一次即可管理多个 Vault：
+
+```bash
+graphify --vault ../MyGraphifyVault lint
+```
+
+根目录优先级：`--vault` → `GRAPHIFY_VAULT` → 从当前目录向上找到 `graphify.toml` → 当前目录。
+完整目录和 Git/LFS 策略见 [Vault Git 管理](docs/vault-git-strategy.md)。
+
+## 可选能力与参考
+
+- [详细入门](docs/getting-started.md)：新终端、独立安装与合成样例
+- [常见问题](docs/troubleshooting.md)：路径、环境、警告、媒体
+- [笔记规范](schema/note-spec.md) / [工作流规范](schema/workflows.md)：唯一权威规则
+- [Obsidian 配置](schema/obsidian-setup.md)：图谱与可选 Smart Connections
+- [媒体编译](docs/media.md)：实验性 `compile-media`，需独立 provider
+- [贡献指南](CONTRIBUTING.md) / [开发入口](docs/DEVELOPMENT_GUIDE.md)
+- [本次优化说明与验收](docs/OPTIMIZATION_SUMMARY.md)
+- [变更记录](CHANGELOG.md) / [第二阶段](docs/phase-2.md)
+
+当前为 0.x 版本；升级前检查变更记录，特别注意 Vault 定位与规则副本的兼容说明。

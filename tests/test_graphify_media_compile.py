@@ -4,6 +4,7 @@ import contextlib
 import io
 import importlib.util
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -28,37 +29,8 @@ def load_graphify():
 
 @contextlib.contextmanager
 def patched_roots(graphify, root: Path):
-    original = {
-        "ROOT": graphify.ROOT,
-        "RAW_ROOT": graphify.RAW_ROOT,
-        "CLUSTER_ROOT": graphify.CLUSTER_ROOT,
-        "GRAPHIFY_ROOT": graphify.GRAPHIFY_ROOT,
-        "SOURCE_ROOT": graphify.SOURCE_ROOT,
-        "INDEX_ROOT": graphify.INDEX_ROOT,
-        "LOG_ROOT": graphify.LOG_ROOT,
-        "EXPORT_ROOT": graphify.EXPORT_ROOT,
-        "LINK_MANIFEST_PATH": graphify.LINK_MANIFEST_PATH,
-        "PENDING_PATH": graphify.PENDING_PATH,
-        "STATE_PATH": graphify.STATE_PATH,
-        "DEFAULT_SCOPE_PATH": graphify.DEFAULT_SCOPE_PATH,
-    }
-    graphify.ROOT = root
-    graphify.RAW_ROOT = root / "raw"
-    graphify.CLUSTER_ROOT = root / "知识簇"
-    graphify.GRAPHIFY_ROOT = root / "_graphify"
-    graphify.SOURCE_ROOT = graphify.GRAPHIFY_ROOT / "sources"
-    graphify.INDEX_ROOT = graphify.GRAPHIFY_ROOT / "indexes"
-    graphify.LOG_ROOT = root / "_logs"
-    graphify.EXPORT_ROOT = root / "exports"
-    graphify.LINK_MANIFEST_PATH = graphify.LOG_ROOT / "link-manifest.json"
-    graphify.PENDING_PATH = graphify.LOG_ROOT / "pending.md"
-    graphify.STATE_PATH = graphify.LOG_ROOT / "vault-state.json"
-    graphify.DEFAULT_SCOPE_PATH = root / "处理清单.md"
-    try:
+    with graphify.use_vault(graphify.VaultContext(root)):
         yield
-    finally:
-        for key, value in original.items():
-            setattr(graphify, key, value)
 
 
 class FakeVisualBackend:
@@ -125,8 +97,8 @@ class GraphifyMediaCompileTest(unittest.TestCase):
 
         with (
             mock.patch.object(sys, "argv", argv),
-            mock.patch.object(graphify, "load_vault", side_effect=AssertionError("load_vault should not run")),
-            mock.patch.object(graphify, "command_compile_media", return_value=0) as compile_media,
+            mock.patch("obsidian_graphify.cli.load_vault", side_effect=AssertionError("load_vault should not run")),
+            mock.patch("obsidian_graphify.media.transfer_platform.command_compile_media", return_value=0) as compile_media,
         ):
             exit_code = graphify.main()
 
@@ -314,13 +286,13 @@ class GraphifyMediaCompileTest(unittest.TestCase):
 
             with (
                 patched_roots(graphify, root),
-                mock.patch.object(graphify, "resolve_transfer_platform_executable", return_value="/tmp/transfer-platform"),
+                mock.patch("obsidian_graphify.media.transfer_platform.resolve_transfer_platform_executable", return_value="/tmp/transfer-platform"),
                 mock.patch.object(
-                    graphify.subprocess,
+                    subprocess,
                     "run",
                     return_value=mock.Mock(returncode=0, stdout="compiled\n", stderr=""),
                 ) as run_mock,
-                mock.patch.object(graphify.sys, "stdout", new_callable=io.StringIO) as stdout,
+                mock.patch.object(sys, "stdout", new_callable=io.StringIO) as stdout,
             ):
                 exit_code = graphify.command_compile_media("raw/inbox/video-visual/专题/demo.mp4", force=True)
 
@@ -348,13 +320,13 @@ class GraphifyMediaCompileTest(unittest.TestCase):
 
             with (
                 patched_roots(graphify, root),
-                mock.patch.object(graphify, "resolve_transfer_platform_executable", return_value="/tmp/transfer-platform"),
+                mock.patch("obsidian_graphify.media.transfer_platform.resolve_transfer_platform_executable", return_value="/tmp/transfer-platform"),
                 mock.patch.object(
-                    graphify.subprocess,
+                    subprocess,
                     "run",
                     return_value=mock.Mock(returncode=1, stdout="", stderr="compile failed\n"),
                 ),
-                mock.patch.object(graphify.sys, "stderr", new_callable=io.StringIO) as stderr,
+                mock.patch.object(sys, "stderr", new_callable=io.StringIO) as stderr,
             ):
                 exit_code = graphify.command_compile_media("raw/inbox/video-visual/demo.mp4")
 

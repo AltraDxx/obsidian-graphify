@@ -22,14 +22,18 @@ __pycache__/
 .obsidian/
 
 # Private vault content
-raw/
-知识簇/
-_graphify/
-处理清单.md
+/raw/
+/知识簇/
+/_graphify/
+/处理清单.md
 
 # Generated and operator-local state
 _logs/
 exports/
+.graphify/
+build/
+dist/
+*.egg-info/
 
 # Local plans, tools, and machine-specific launchers
 plans/
